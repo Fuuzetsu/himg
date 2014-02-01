@@ -54,20 +54,21 @@ printHelp = putStr . unlines $
 viewFromFile ∷ FilePath → IO ()
 viewFromFile p = doesFileExist p >>= \case
   True → imageNewFromFile p >>= displayImage
-  False → printf "%s doesn't exist" p >> exitWith (ExitFailure 2)
+  False → printf "%s doesn't exist\n" p >> exitWith (ExitFailure 2)
 
 -- | Opens a passed in URL if possible. Exits with 2 if a download
 -- problem occurs.
 viewFromLink ∷ String → IO ()
 viewFromLink link =
   if not $ isURI link
-   then printf "%s is not a valid link" link >> exitWith (ExitFailure 2)
+   then printf "%s is not a valid link\n" link >> exitWith (ExitFailure 2)
    else simpleHttp link >>= \bs → do
           withSystemTempFile "himg.imgfile" $ \p h →
             L.hPut h bs >> hClose h >> imageNewFromFile p >>= displayImage
         `catch`
         \(e ∷ HttpException) →
-          printf "Encountered a problem while downloading %s: %s" link (show e)
+          printf "Encountered a problem while downloading %s: %s\n"
+            link (show e)
           >> exitWith (ExitFailure 2)
 
 -- | Attempts to guess whether the input is a file or a URL and opens the image
@@ -77,4 +78,4 @@ viewGuess p = doesFileExist p >>= \case
   True → viewFromFile p
   False → if isURI p
           then viewFromLink p
-          else printf "Don't know how to open %s" p >> exitWith (ExitFailure 3)
+          else printf "Don't know how to open %s\n" p >> exitWith (ExitFailure 3)
