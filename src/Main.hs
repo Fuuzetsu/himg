@@ -23,7 +23,7 @@ main = do
     "-h":_ → printHelp >> exitWith (ExitFailure 1)
     ["-f", link] → viewFromFile link
     ["-u", link] → viewFromLink link
-    [link] → undefined link
+    [link] → viewGuess link
     _ → printHelp >> exitWith (ExitFailure 1)
 
 -- | Prints the help message.
@@ -59,3 +59,12 @@ viewFromLink link =
         \(e ∷ HttpException) →
           printf "Encountered a problem while downloading %s: %s" link (show e)
           >> exitWith (ExitFailure 2)
+
+-- | Attempts to guess whether the input is a file or a URL and opens the image
+-- appropriately. Exits with 3 if it can't decide what it's looking at.
+viewGuess ∷ String → IO ()
+viewGuess p = doesFileExist p >>= \case
+  True → viewFromFile p
+  False → if isURI p
+          then viewFromLink p
+          else printf "Don't know how to open %s" p >> exitWith (ExitFailure 3)
