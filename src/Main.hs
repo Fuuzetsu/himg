@@ -1,7 +1,14 @@
 {-# LANGUAGE UnicodeSyntax #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE FunctionalDependencies #-}
+-- |
+-- Module      :  Main
+-- Copyright   :  (c) Mateusz Kowalczyk 2013
+-- License     :  GPL-3
+--
+-- Maintainer  :  fuuzetsu@fuuzetsu.co.uk
+-- Stability   :  experimental
+-- Portability :  portable
 module Main where
 
 import           Control.Exception
@@ -43,11 +50,14 @@ printHelp = putStr . unlines $
   , "To quit the viewer, press ‘q’."
   ]
 
+-- | Opens 'FilePath' from a file. Exits with 2 if the file doesn't exist.
 viewFromFile ∷ FilePath → IO ()
 viewFromFile p = doesFileExist p >>= \case
   True → imageNewFromFile p >>= displayImage
   False → printf "%s doesn't exist" p >> exitWith (ExitFailure 2)
 
+-- | Opens a passed in URL if possible. Exits with 2 if a download
+-- problem occurs.
 viewFromLink ∷ String → IO ()
 viewFromLink link =
   if not $ isURI link

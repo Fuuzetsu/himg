@@ -1,4 +1,12 @@
 {-# LANGUAGE UnicodeSyntax #-}
+-- |
+-- Module      :  Graphics.HImg
+-- Copyright   :  (c) Mateusz Kowalczyk 2013
+-- License     :  GPL-3
+--
+-- Maintainer  :  fuuzetsu@fuuzetsu.co.uk
+-- Stability   :  experimental
+-- Portability :  portable
 module Graphics.HImg (displayImage) where
 
 import Control.Concurrent
