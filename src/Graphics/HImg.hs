@@ -1,5 +1,5 @@
 {-# LANGUAGE UnicodeSyntax #-}
-module Graphics.HImg where
+module Graphics.HImg (displayImage) where
 
 import Control.Concurrent
 import System.Exit
@@ -7,31 +7,24 @@ import Graphics.UI.Gtk
 import Graphics.UI.Gtk.Gdk.GC
 import Graphics.UI.Gtk.Gdk.Events
 
--- pimg = pixbufNewFromFile "/home/shana/images/414px-airi_suzuki_buono21.jpg"
-pimg = pixbufNewFromFile "/tmp/HenNeko.gif"
-
-displayImage ∷ Pixbuf → IO ()
-displayImage b = do
+-- | Takes 'Image' and spawns a window which displays it. It does not do any
+-- scaling and such. You can kill the window with ‘q’.
+displayImage ∷ Image → IO ()
+displayImage img = do
   initGUI
   window ← windowNew
-  drawingArea ← drawingAreaNew
-  hbox ← hBoxNew True 0
 
-  boxPackStart hbox drawingArea PackGrow 0
-  set window [ containerBorderWidth := 0, containerChild := hbox ]
+  set window [ containerBorderWidth := 0, containerChild := img
+             , windowResizable := False ]
 
   -- We block main thread on this until something in the program
   -- decides that it's time to kill the main window and exit.
   exitVar ← newEmptyMVar
 
-  onDestroy window $ putMVar exitVar ()
-  onKeyPress window (keyPressedEvent exitVar)
+  mapM_ ($ window) [ (`onDestroy` putMVar exitVar ())
+                   , (`onKeyPress` keyPressedEvent exitVar)
+                   ]
   widgetShowAll window
-
-  drawable ← widgetGetDrawWindow drawingArea
-  gc ← gcNew drawable
-
-  onExpose drawingArea (reloadImage b drawable gc)
 
   -- Fork the graphics stuff and block until user exits
   forkIO mainGUI
@@ -39,12 +32,7 @@ displayImage b = do
   widgetDestroy window
   mainQuit
 
-
-reloadImage ∷ Pixbuf → DrawWindow → GC → Event → IO Bool
-reloadImage pix drawable gc _ = do
-  drawPixbuf drawable gc pix 0 0 0 0 (-1) (-1) RgbDitherNone 0 0
-  return True
-
+-- | Handles key events for the window spawned by 'displayImage'.
 keyPressedEvent ∷ MVar () → Event → IO Bool
 keyPressedEvent m Key{eventKeyChar = Just 'q'} = putMVar m () >> return True
 keyPressedEvent _ _ = return False
